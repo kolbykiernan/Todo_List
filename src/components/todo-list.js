@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
-import { Draggable } from './draggable';
+import { SortableContext, arrayMove } from '@dnd-kit/sortable';
+import { SortableItem } from './sortable';
 import { Droppable } from './droppable';
 
 export default function TodoList() {
@@ -39,27 +40,49 @@ export default function TodoList() {
     const { active, over } = event;
 
     if (!over) {
-      setActiveId(null);
-      return;
+        setActiveId(null);
+        return;
     }
 
-    const fromColumn = active.data.current.droppableId;
+    const fromColumn = active.data.current?.droppableId;
     const toColumn = over.id;
 
-    if (fromColumn !== toColumn) {
-
-      setTasks((prevTasks) => {
-        const activeTask = prevTasks[fromColumn].find((task) => task === active.id);
-
-        return {
-          ...prevTasks,
-          [fromColumn]: prevTasks[fromColumn].filter((task) => task !== activeTask),
-          [toColumn]: [...prevTasks[toColumn], activeTask],
-        };
-      });
+    if (!fromColumn || !toColumn || !tasks[fromColumn] || !tasks[toColumn]) {
+        setActiveId(null);
+        return;
     }
+
+    if (fromColumn !== toColumn) {
+        setTasks((prevTasks) => {
+            const activeTask = prevTasks[fromColumn].find((task) => task === active.id);
+
+            return {
+                ...prevTasks,
+                [fromColumn]: prevTasks[fromColumn].filter((task) => task !== activeTask),
+                [toColumn]: [...prevTasks[toColumn], activeTask],
+            };
+        });
+    } else {
+        // Sorting within the same column
+        const overIndex = over.data.current?.index;
+
+        if (overIndex === undefined) {
+            setActiveId(null);
+            return;
+        }
+
+        setTasks((prevTasks) => {
+            const updatedTasks = arrayMove(prevTasks[fromColumn], active.data.current.index, overIndex);
+            return {
+                ...prevTasks,
+                [fromColumn]: updatedTasks,
+            };
+        });
+    }
+
     setActiveId(null);
-  };
+};
+
 
 
   return (
@@ -87,30 +110,36 @@ export default function TodoList() {
       </div>
 
       <div className="flex space-x-4 h-screen mt-10">
-        <Droppable id="todo" label="Todo">
-          {tasks.todo.map((task) => (
-            <Draggable key={task} id={task} droppableId="todo">
-              {task}
-            </Draggable>
-          ))}
-        </Droppable>
-        <Droppable id="inProgress" label="In Progress">
-          {tasks.inProgress.map((task) => (
-            <Draggable key={task} id={task} droppableId="inProgress">
-              {task}
-            </Draggable>
-          ))}
-        </Droppable>
-        <Droppable id="done" label="Done">
-          {tasks.done.map((task) => (
-            <Draggable key={task} id={task} droppableId="done">
-              {task}
-            </Draggable>
-          ))}
-        </Droppable>
-      </div>
+          <Droppable id="todo" label="Todo">
+            <SortableContext items={tasks.todo}>
+              {tasks.todo.map((task, index) => (
+                <SortableItem key={task} id={task} index={index} droppableId="todo">
+                  {task}
+                </SortableItem>
+              ))}
+            </SortableContext>
+          </Droppable>
+          <Droppable id="inProgress" label="In Progress">
+            <SortableContext items={tasks.inProgress}>
+              {tasks.inProgress.map((task, index) => (
+                <SortableItem key={task} id={task} index={index} droppableId="inProgress">
+                  {task}
+                </SortableItem>
+              ))}
+            </SortableContext>
+          </Droppable>
+          <Droppable id="done" label="Done">
+            <SortableContext items={tasks.done}>
+              {tasks.done.map((task, index) => (
+                <SortableItem key={task} id={task} index={index} droppableId="done">
+                  {task}
+                </SortableItem>
+              ))}
+            </SortableContext>
+          </Droppable>
+        </div>
         <DragOverlay>
-          {activeId ? <Draggable id={activeId}>{activeId}</Draggable> : null}
+          {activeId ? <SortableItem id={activeId}>{activeId}</SortableItem> : null}
         </DragOverlay>
     </div>
   </DndContext>
