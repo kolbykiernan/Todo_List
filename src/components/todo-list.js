@@ -94,21 +94,26 @@ export default function TodoList() {
         };
       });
     } else {
-      // Moving to a different column //
+      // Remove the task from the original column //
       setTasks((existingTasks) => {
-        // Remove the task from the original column //
         const updatedFromColumn = existingTasks[fromColumn].filter(
           (task) => task !== active.id
         );
 
+        // Determine where to insert in the toColumn //
+        let insertionIndex = existingTasks[toColumn].indexOf(over.id);
+        if (insertionIndex === -1) {
+          insertionIndex = existingTasks[toColumn].length;
+        }
+
         // Add the task to the new column //
         const updatedToColumn = [
-          ...existingTasks[toColumn].slice(0, existingTasks[toColumn].indexOf(over.id)),
+          ...existingTasks[toColumn].slice(0, insertionIndex),
           active.id,
-          ...existingTasks[toColumn].slice(existingTasks[toColumn].indexOf(over.id)),
+          ...existingTasks[toColumn].slice(insertionIndex),
         ];
 
-        // Show confetti if moved to "Done" column
+        // Show confetti if moved to "Done" column //
         if (toColumn === 'done') {
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 3000); 
@@ -153,7 +158,7 @@ export default function TodoList() {
         {/* <------ Render tasks in columns using Droppable and SortableContext components -------> */}
         <div className="flex space-x-4 h-screen mt-10">
           {Object.entries(tasks).map(([columnId, items]) => (
-            <Droppable key={columnId} id={columnId} label={columnLabels[columnId]}>
+            <Droppable key={columnId} id={columnId} taskCount={items.length} label={columnLabels[columnId]}>
               <SortableContext items={items} strategy={verticalListSortingStrategy}>
                 {items.map((task, index) => (
                   <SortableItem key={task} id={task} index={index} droppableId={columnId}>
