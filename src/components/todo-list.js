@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestCenter } from '@dnd-kit/core';
-import { SortableContext, arrayMove, verticalListSortingStrategy,} from '@dnd-kit/sortable';
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from './sortable';
 import { Droppable } from './droppable';
+import Confetti from 'react-confetti'; // Import Confetti
 
 export default function TodoList() {
   const [taskName, setTaskName] = useState('');
@@ -12,6 +13,7 @@ export default function TodoList() {
     done: ['Interview with Jonathan', 'Interview with Brandon', 'Meeting with Brandon & Aisha', 'Interview with Katie', 'Interview with Ani'],
   });
   const [activeId, setActiveId] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false); // State for confetti
 
   const columnLabels = {
     todo: 'Todo',
@@ -19,8 +21,7 @@ export default function TodoList() {
     done: 'Done',
   };
 
-
-// <------ Load tasks from localStorage on mount ------> //
+  // <------ Load tasks from localStorage on mount ------> //
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem('tasks'));
     if (savedTasks) {
@@ -28,14 +29,12 @@ export default function TodoList() {
     }
   }, []);
 
-
-// <------ Save tasks to localStorage on change ------> //
+  // <------ Save tasks to localStorage on change ------> //
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-
-// <------ Defined sensor with useSensor hook ------> //
+  // <------ Defined sensor with useSensor hook ------> //
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -44,8 +43,7 @@ export default function TodoList() {
     })
   );
 
-
-// <------ Function to create a new task ------> //
+  // <------ Function to create a new task ------> //
   const onCreateTask = () => {
     if (taskName.trim()) {
       setTasks((existingTasks) => ({
@@ -56,15 +54,13 @@ export default function TodoList() {
     }
   };
 
-
   // <------ Function to set activeId state when a task is dragged ------> //
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
-
-// <------ Function to handle when a task is dropped ------> //
-const handleDragEnd = (event) => {
+  // <------ Function to handle when a task is dropped ------> //
+  const handleDragEnd = (event) => {
     const { active, over } = event;
   
     if (!over) {
@@ -102,14 +98,20 @@ const handleDragEnd = (event) => {
         const updatedFromColumn = existingTasks[fromColumn].filter(
           (task) => task !== active.id
         );
-  
+
         // Add the task to the new column //
         const updatedToColumn = [
           ...existingTasks[toColumn].slice(0, existingTasks[toColumn].indexOf(over.id)),
           active.id,
           ...existingTasks[toColumn].slice(existingTasks[toColumn].indexOf(over.id)),
         ];
-  
+
+        // Show confetti if moved to "Done" column
+        if (toColumn === 'done') {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000); 
+        }
+
         return {
           ...existingTasks,
           [fromColumn]: updatedFromColumn,
@@ -117,10 +119,9 @@ const handleDragEnd = (event) => {
         };
       });
     }
-  
+
     setActiveId(null);
   };
-  
 
   return (
     <DndContext
@@ -147,7 +148,7 @@ const handleDragEnd = (event) => {
           </button>
         </div>
 
-{/* <------ Render tasks in columns using Droppable and SortableContext components -------> */}
+        {/* <------ Render tasks in columns using Droppable and SortableContext components -------> */}
         <div className="flex space-x-4 h-screen mt-10">
           {Object.entries(tasks).map(([columnId, items]) => (
             <Droppable key={columnId} id={columnId} label={columnLabels[columnId]}>
@@ -161,6 +162,8 @@ const handleDragEnd = (event) => {
             </Droppable>
           ))}
         </div>
+        {/* Show confetti if showConfetti is true */}
+        {showConfetti && <Confetti />}
         {/* styling element provided by DNDKit to show user interaction when dragging */}
         <DragOverlay>
           {activeId ? <div className="p-2 bg-yellow-200 rounded">{activeId}</div> : null}
