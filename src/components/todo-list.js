@@ -64,25 +64,24 @@ export default function TodoList() {
 
 
 // <------ Function to handle when a task is dropped ------> //
-  const handleDragEnd = (event) => {
-    
+const handleDragEnd = (event) => {
     const { active, over } = event;
-
+  
     if (!over) {
       setActiveId(null);
       return;
     }
-
-    //  defines and retrieves droppableId from active and over event data and sets anything that doesn't apply to null //
+  
+    // Defines and retrieves droppableId from active and over event data and sets anything that doesn't apply to null //
     const fromColumn = active.data.current?.droppableId;
     const toColumn = over.data.current?.droppableId;
-
+  
     if (!fromColumn || !toColumn) {
       setActiveId(null);
       return;
     }
-
-    // if sortableItem is being dropped from and to the same column, setTasks updates tasks state with existingTasks which uses ArrayMove to allow the task to be sorted //
+  
+    // Check if the item is dropped within the same column //
     if (fromColumn === toColumn) {
       setTasks((existingTasks) => {
         const updatedTasks = arrayMove(
@@ -90,16 +89,38 @@ export default function TodoList() {
           existingTasks[fromColumn].indexOf(active.id),
           existingTasks[fromColumn].indexOf(over.id)
         );
-
+  
         return {
           ...existingTasks,
           [fromColumn]: updatedTasks,
         };
       });
+    } else {
+      // Moving to a different column //
+      setTasks((existingTasks) => {
+        // Remove the task from the original column //
+        const updatedFromColumn = existingTasks[fromColumn].filter(
+          (task) => task !== active.id
+        );
+  
+        // Add the task to the new column //
+        const updatedToColumn = [
+          ...existingTasks[toColumn].slice(0, existingTasks[toColumn].indexOf(over.id)),
+          active.id,
+          ...existingTasks[toColumn].slice(existingTasks[toColumn].indexOf(over.id)),
+        ];
+  
+        return {
+          ...existingTasks,
+          [fromColumn]: updatedFromColumn,
+          [toColumn]: updatedToColumn,
+        };
+      });
     }
-
+  
     setActiveId(null);
   };
+  
 
   return (
     <DndContext
