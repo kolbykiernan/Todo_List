@@ -3,8 +3,10 @@ import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestC
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from './sortable';
 import { Droppable } from './droppable';
+import { TaskDetails } from './task-details';
 import Confetti from 'react-confetti';
 import useWindowSize from 'react-use/lib/useWindowSize';
+import { AnimatePresence } from 'framer-motion';
 
 export default function TodoList() {
   const { width, height } = useWindowSize();
@@ -16,6 +18,7 @@ export default function TodoList() {
   });
   const [activeId, setActiveId] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const columnLabels = {
     todo: 'Todo',
@@ -78,57 +81,94 @@ export default function TodoList() {
       setActiveId(null);
       return;
     }
+    
   
-    // Check if the item is dropped within the same column //
-    if (fromColumn === toColumn) {
-      setTasks((existingTasks) => {
-        const updatedTasks = arrayMove(
-          existingTasks[fromColumn],
-          existingTasks[fromColumn].indexOf(active.id),
-          existingTasks[fromColumn].indexOf(over.id)
-        );
-  
-        return {
-          ...existingTasks,
-          [fromColumn]: updatedTasks,
-        };
-      });
-    } else {
-      // Remove the task from the original column //
-      setTasks((existingTasks) => {
-        const updatedFromColumn = existingTasks[fromColumn].filter(
-          (task) => task !== active.id
+    setTasks((existingTasks) => {
+        let updatedFromColumn = existingTasks[fromColumn].filter(
+            (task) => task !== active.id
         );
 
-        // Determine where to insert in the toColumn //
-        let insertionIndex = existingTasks[toColumn].indexOf(over.id);
-        if (insertionIndex === -1) {
-          insertionIndex = existingTasks[toColumn].length;
-        }
+        let updatedToColumn;
+        
+        // Check if the item is dropped within the same column //
+        if (fromColumn === toColumn) {
+            updatedToColumn = arrayMove(
+                existingTasks[toColumn],
+                existingTasks[toColumn].indexOf(active.id),
+                existingTasks[toColumn].indexOf(over.id)
+            );
+        } else {
+            // If `over.id` is not found in the toColumn, append it to the end
+            let insertionIndex = existingTasks[toColumn].indexOf(over.id);
+            if (insertionIndex === -1) {
+                insertionIndex = existingTasks[toColumn].length;
+            }
 
-        // Add the task to the new column //
-        const updatedToColumn = [
-          ...existingTasks[toColumn].slice(0, insertionIndex),
-          active.id,
-          ...existingTasks[toColumn].slice(insertionIndex),
-        ];
+            // Insert task into the new column
+            updatedToColumn = [
+                ...existingTasks[toColumn].slice(0, insertionIndex),
+                active.id,
+                ...existingTasks[toColumn].slice(insertionIndex),
+            ];
 
-        // Show confetti if moved to "Done" column //
-        if (toColumn === 'done') {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000); 
+            // Show confetti if moved to "Done" column
+            if (toColumn === 'done') {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 3000); 
+            }
         }
 
         return {
-          ...existingTasks,
-          [fromColumn]: updatedFromColumn,
-          [toColumn]: updatedToColumn,
+            ...existingTasks,
+            [fromColumn]: updatedFromColumn,
+            [toColumn]: updatedToColumn,
         };
-      });
-    }
+    });
 
     setActiveId(null);
+};
+
+ // <------ Function to open task details ------> //
+const openTaskDetails = (task) => {
+    setSelectedTask(task);
   };
+
+// <------ Function to save task details ------> //
+const saveTaskDetails = (updatedTask) => {
+    if (!updatedTask) {
+        // Handle task deletion
+        setTasks((existingTasks) => {
+            const updatedTasks = { ...existingTasks };
+            Object.keys(updatedTasks).forEach(columnId => {
+                updatedTasks[columnId] = updatedTasks[columnId].filter(task => task !== selectedTask.id);
+            });
+            return updatedTasks;
+        });
+    } else {
+        // Handle task update
+        setTasks((existingTasks) => {
+            const updatedTasks = { ...existingTasks };
+            // Locate the column containing the task
+            const columnId = updatedTask.status || selectedTask.status;
+
+            // Replace the old task with the updated task
+            updatedTasks[columnId] = updatedTasks[columnId].map(task => 
+                task === selectedTask.id ? updatedTask.name : task
+            );
+
+            // If the status has changed, move the task to the new column
+            if (columnId !== selectedTask.status) {
+                // Remove from the original column
+                updatedTasks[selectedTask.status] = updatedTasks[selectedTask.status].filter(task => task !== selectedTask.id);
+                // Add to the new column
+                updatedTasks[columnId] = [...updatedTasks[columnId], updatedTask.name];
+            }
+
+            return updatedTasks;
+        });
+    }
+    setSelectedTask(null);
+};
 
   return (
     <DndContext
@@ -162,7 +202,9 @@ export default function TodoList() {
               <SortableContext items={items} strategy={verticalListSortingStrategy}>
                 {items.map((task, index) => (
                   <SortableItem key={task} id={task} index={index} droppableId={columnId}>
-                    {task}
+                    <div onClick={() => openTaskDetails({ id: task, name: task, notes: '', status: columnId })}>
+                      {task}
+                    </div>
                   </SortableItem>
                 ))}
               </SortableContext>
@@ -171,6 +213,16 @@ export default function TodoList() {
         </div>
         {/* Show confetti if showConfetti is true */}
         {showConfetti && <Confetti width={width} height={height} />}
+        {/* Show Task Details Overlay */}
+        <AnimatePresence>
+            {selectedTask && (
+                <TaskDetails 
+                task={selectedTask} 
+                onClose={() => setSelectedTask(null)} 
+                onSave={saveTaskDetails} 
+                />
+            )}
+        </AnimatePresence>
         {/* styling element provided by DNDKit to show user interaction when dragging */}
         <DragOverlay>
           {activeId ? <div className="p-2 bg-yellow-200 rounded">{activeId}</div> : null}
