@@ -3,9 +3,11 @@ import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestC
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from './sortable';
 import { Droppable } from './droppable';
-import Confetti from 'react-confetti'; // Import Confetti
+import Confetti from 'react-confetti';
+import useWindowSize from 'react-use/lib/useWindowSize';
 
 export default function TodoList() {
+  const { width, height } = useWindowSize();
   const [taskName, setTaskName] = useState('');
   const [tasks, setTasks] = useState({
     todo: ['Meet with Brandon to review project', 'Switch to my MacBook Pro'],
@@ -13,7 +15,7 @@ export default function TodoList() {
     done: ['Interview with Jonathan', 'Interview with Brandon', 'Meeting with Brandon & Aisha', 'Interview with Katie', 'Interview with Ani'],
   });
   const [activeId, setActiveId] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false); // State for confetti
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const columnLabels = {
     todo: 'Todo',
@@ -163,7 +165,7 @@ export default function TodoList() {
           ))}
         </div>
         {/* Show confetti if showConfetti is true */}
-        {showConfetti && <Confetti />}
+        {showConfetti && <Confetti width={width} height={height} />}
         {/* styling element provided by DNDKit to show user interaction when dragging */}
         <DragOverlay>
           {activeId ? <div className="p-2 bg-yellow-200 rounded">{activeId}</div> : null}
