@@ -127,7 +127,7 @@ export default function TodoList() {
     }
   
     const fromColumn = active.data.current?.droppableId;
-    const toColumn = over.data.current?.droppableId;
+    const toColumn = over.id;
   
     if (!fromColumn || !toColumn) {
       setActiveId(null);
