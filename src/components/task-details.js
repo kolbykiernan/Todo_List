@@ -1,21 +1,22 @@
-// components/TaskDetails.js
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 export function TaskDetails({ task, onClose, onSave }) {
   const [taskName, setTaskName] = useState(task.name);
   const [notes, setNotes] = useState(task.notes || '');
-  const [repeatFrequency, setRepeatFrequency] = useState({ number: 0, period: 'Never' });
+  const [repeatFrequency, setRepeatFrequency] = useState(task.repeatFrequency || { number: 0, period: 'Never' });
   const [priority, setPriority] = useState(task.priority || 'Low');
 
   const handleSave = () => {
-    onSave({
+    const updatedTask = {
       ...task,
       name: taskName,
       notes,
       repeatFrequency,
       priority,
-    });
+    };
+    console.log('Saving Task:', updatedTask);
+    onSave(updatedTask);
     onClose();
   };
 

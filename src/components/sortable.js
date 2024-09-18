@@ -28,8 +28,7 @@ export function SortableItem({ id, index, droppableId, children }) {
         style={style} 
         {...attributes} 
         {...listeners} 
-        className="bg-yellow-50 p-2 mb-2 border rounded-md shadow-sm cursor-move hover:bg-yellow-100 hover:shadow-md transition duration-300"
-    >
+        className="bg-yellow-50 p-2 mb-2 border rounded-md shadow-sm cursor-move">
       {children}
     </div>
   );
