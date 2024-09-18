@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, rectIntersection } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableItem } from './sortable';
 import { Droppable } from './droppable';
@@ -9,83 +9,49 @@ import useWindowSize from 'react-use/lib/useWindowSize';
 import { AnimatePresence } from 'framer-motion';
 
 export default function TodoList() {
-  // Get the window size to use with the Confetti component
   const { width, height } = useWindowSize();
-  
-  // State to hold the name of a new task to be created
   const [taskName, setTaskName] = useState('');
-  
-  // Function to get initial tasks, either from localStorage or use default values
-  const initialTasks = () => {
-    const savedTasks = JSON.parse(localStorage.getItem('tasks'));
-    if (savedTasks && typeof savedTasks === 'object') {
-      const isCorrectFormat = Object.values(savedTasks).every(column => 
-        Array.isArray(column) && column.every(task => task && task.id && task.name)
-      );
-  
-      if (isCorrectFormat) {
-        return savedTasks; // Use tasks from localStorage if in correct format
-      }
-    }
-    // Default tasks if nothing in localStorage or incorrect format
-    return {
-      todo: [
-        { id: '1', name: 'Meet with Brandon to review project', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
-        { id: '2', name: 'Switch to my MacBook Pro', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' }
-      ],
-      inProgress: [
-        { id: '3', name: 'Connect Stripe to Ecomm Ruby Project', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
-        { id: '4', name: 'Submit Take-Home Project', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' }
-      ],
-      done: [
-        { id: '5', name: 'Interview with Jonathan', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
-        { id: '6', name: 'Interview with Brandon', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
-        { id: '7', name: 'Meeting with Brandon & Aisha', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
-        { id: '8', name: 'Interview with Katie', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
-        { id: '9', name: 'Interview with Ani', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' }
-      ],
-    };
-  };
-  
-  // State to hold tasks, initializing with `initialTasks` function
-  const [tasks, setTasks] = useState(initialTasks);
-  // State to hold the currently active task being dragged
+  const [tasks, setTasks] = useState({
+    todo: [
+      { id: '1', name: 'Meet with Brandon to review project', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
+      { id: '2', name: 'Switch to my MacBook Pro', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' }
+    ],
+    inProgress: [
+      { id: '3', name: 'Connect Stripe to Ecomm Ruby Project', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
+      { id: '4', name: 'Submit Take-Home Project', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' }
+    ],
+    done: [
+      { id: '5', name: 'Interview with Jonathan', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
+      { id: '6', name: 'Interview with Brandon', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
+      { id: '7', name: 'Meeting with Brandon & Aisha', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
+      { id: '8', name: 'Interview with Katie', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' },
+      { id: '9', name: 'Interview with Ani', notes: '', repeatFrequency: { number: 0, period: 'Never' }, priority: 'Low' }
+    ],
+  });
   const [activeId, setActiveId] = useState(null);
-  // State to control the display of confetti when a task is marked done
   const [showConfetti, setShowConfetti] = useState(false);
-  // State to hold the currently selected task for editing
   const [selectedTask, setSelectedTask] = useState(null);
 
-  // Labels for the columns
   const columnLabels = {
     todo: 'Todo',
     inProgress: 'In Progress',
     done: 'Done',
   };
 
-  // Effect to load tasks from localStorage on initial render
+  // Load tasks from localStorage on mount
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem('tasks'));
-    if (savedTasks && typeof savedTasks === 'object') {
-      const isCorrectFormat = Object.values(savedTasks).every(column => 
-        Array.isArray(column) && column.every(task => task && task.id && task.name)
-      );
-      
-      if (isCorrectFormat) {
-        setTasks(savedTasks);
-      } else {
-        localStorage.removeItem('tasks');
-      }
+    if (savedTasks) {
+      setTasks(savedTasks);
     }
   }, []);
 
-  // Effect to update localStorage whenever `tasks` state changes
+  // Save tasks to localStorage on change
   useEffect(() => {
-    console.log('Updating localStorage:', tasks);
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Set up sensors for drag-and-drop using the PointerSensor
+  // Defined sensor with useSensor hook
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -94,11 +60,11 @@ export default function TodoList() {
     })
   );
 
-  // Function to create a new task and initialize its properties
+  // Function to create a new task
   const onCreateTask = () => {
     if (taskName.trim()) {
       const newTask = {
-        id: Date.now().toString(), 
+        id: Date.now().toString(),
         name: taskName,
         notes: '',
         repeatFrequency: { number: 0, period: 'Never' },
@@ -106,42 +72,41 @@ export default function TodoList() {
       };
       setTasks((existingTasks) => ({
         ...existingTasks,
-        todo: [...existingTasks.todo, newTask], // Adds task to "todo" column
+        todo: [...existingTasks.todo, newTask],
       }));
-      setTaskName(''); 
+      setTaskName('');
     }
   };
 
-  // Function called when drag starts
+  // Function to set activeId state when a task is dragged
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
-  // Function called when drag ends
+  // Function to handle when a task is dropped
   const handleDragEnd = (event) => {
     const { active, over } = event;
-  
+
     if (!over) {
       setActiveId(null);
       return;
     }
-  
+
     const fromColumn = active.data.current?.droppableId;
     const toColumn = over.id;
-  
+
     if (!fromColumn || !toColumn) {
       setActiveId(null);
       return;
     }
-  
+
     setTasks((existingTasks) => {
-      // Remove the task from the origin column
       let updatedFromColumn = existingTasks[fromColumn].filter(
         (task) => task.id !== active.id
       );
-  
+
       let updatedToColumn;
-  
+
       if (fromColumn === toColumn) {
         // Reorder tasks within the same column
         updatedToColumn = arrayMove(
@@ -151,51 +116,51 @@ export default function TodoList() {
         );
       } else {
         // Move task to a different column
+        const draggedTask = existingTasks[fromColumn].find(task => task.id === active.id);
         let insertionIndex = existingTasks[toColumn].findIndex(task => task.id === over.id);
-  
+
         // If the task is dropped within a column without proximity to another task, add it to the end
         if (insertionIndex === -1) {
           updatedToColumn = [
             ...existingTasks[toColumn],
-            existingTasks[fromColumn].find(task => task.id === active.id),
+            draggedTask,
           ];
         } else {
           updatedToColumn = [
             ...existingTasks[toColumn].slice(0, insertionIndex),
-            existingTasks[fromColumn].find(task => task.id === active.id),
+            draggedTask,
             ...existingTasks[toColumn].slice(insertionIndex),
           ];
         }
-  
-        // Show confetti if task is moved to "done"
+
+        // Show confetti if moved to "Done" column
         if (toColumn === 'done') {
           setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000); 
+          setTimeout(() => setShowConfetti(false), 3000);
         }
       }
-  
+
       return {
         ...existingTasks,
         [fromColumn]: updatedFromColumn,
         [toColumn]: updatedToColumn,
       };
     });
-  
+
     setActiveId(null);
   };
-  
 
-  // Open the task details overlay for editing
+  // Function to open task details
   const openTaskDetails = (task, columnId) => {
     setSelectedTask({ ...task, columnId });
   };
 
-  // Save the task details after editing
+  // Function to save task details
   const saveTaskDetails = (updatedTask) => {
     setTasks((existingTasks) => {
       const updatedTasks = { ...existingTasks };
       const columnId = updatedTask.columnId;
-  
+
       if (updatedTasks[columnId]) {
         // Find the index of the task to be updated
         const taskIndex = updatedTasks[columnId].findIndex(task => task.id === updatedTask.id);
@@ -204,7 +169,7 @@ export default function TodoList() {
           updatedTasks[columnId][taskIndex] = { ...updatedTasks[columnId][taskIndex], ...updatedTask };
         }
       }
-  
+
       console.log('New tasks state after update:', updatedTasks);
       return updatedTasks;
     });
@@ -214,7 +179,7 @@ export default function TodoList() {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={rectIntersection} // Use rectIntersection for better drop detection in empty columns
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -240,25 +205,25 @@ export default function TodoList() {
           {/* Render tasks in columns using Droppable and SortableContext components */}
           <div className="flex space-x-6 h-screen mt-10">
             {Object.entries(tasks).map(([columnId, items]) => (
-              <Droppable 
-                key={columnId} 
-                id={columnId} 
-                taskCount={items ? items.length : 0} 
+              <Droppable
+                key={columnId}
+                id={columnId}
+                taskCount={items.length}
                 label={columnLabels[columnId]}
               >
-                <SortableContext 
-                  items={items ? items.map(task => task.id) : []} 
+                <SortableContext
+                  items={items.map(task => task.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {items && items.map((task, index) => (
-                    <SortableItem 
-                      key={task.id} 
-                      id={task.id} 
-                      index={index} 
+                  {items.map((task, index) => (
+                    <SortableItem
+                      key={task.id}
+                      id={task.id}
+                      index={index}
                       droppableId={columnId}
                       task={task}
                     >
-                      <div onClick={() => openTaskDetails(task, columnId)}> 
+                      <div onClick={() => openTaskDetails(task, columnId)}>
                         {task.name}
                       </div>
                     </SortableItem>
@@ -271,11 +236,11 @@ export default function TodoList() {
         {showConfetti && <Confetti width={width} height={height} />}
         <AnimatePresence>
           {selectedTask && (
-            <TaskDetails 
-              task={selectedTask} 
+            <TaskDetails
+              task={selectedTask}
               columnId={selectedTask.columnId}
-              onClose={() => setSelectedTask(null)} 
-              onSave={saveTaskDetails} 
+              onClose={() => setSelectedTask(null)}
+              onSave={saveTaskDetails}
             />
           )}
         </AnimatePresence>
@@ -297,4 +262,3 @@ export default function TodoList() {
     </DndContext>
   );
 }
-
