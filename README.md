@@ -1,70 +1,59 @@
-# Getting Started with Create React App
+# Todo List
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<details>
+<summary>Table of Contents</summary>
 
-## Available Scripts
+1. 👋 [About The Project](#about-the-project)
+2. ⚙ [Tech Stack](#tech-stack)
+3. 📲 [Features](#features)
+4. 🪪 [License](#license)
+5. 📞 [Contact](#contact)
+6. 🌟 [Credits](#credits)
 
-In the project directory, you can run:
 
-### `npm start`
+</details>
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 👋 About the Project
 
-### `npm test`
+This to-do list application is designed to help users manage tasks efficiently using an interactive and intuitive drag-and-drop interface. The project utilizes modern React libraries to provide a smooth user experience, featuring animations, task organization, and a user-friendly interface. Users can create, edit, and organize tasks across three different columns: "Todo," "In Progress," and "Done." This application also supports task prioritization, note-taking, and repeat scheduling, making it a comprehensive tool for managing tasks. This app is not mobile friendly at the moment.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## ⚙ Built With
+* JavaScript 
+* React
+* Tailwind CSS
+* Framer Motion
+* dnd-kit
+* Vercel Hosting
 
-### `npm run build`
+## 📲 Features
+👉 **Drag-and-Drop Interface:** Built with DnD Kit, allowing users to easily drag and drop tasks between columns to reflect their progress.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+👉 **Smooth Animations:** Implemented using Framer Motion and react-confetti to enhance user interactions and celebrate task completions with confetti animations.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+👉 **Three Organized Columns:** Tasks are organized into three columns—"Todo," "In Progress," and "Done"—with a counter indicating the number of tasks in each column.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+👉 **Task Creation:** Users can create new tasks, which are added to the "Todo" column by default.
 
-### `npm run eject`
+👉 **Task Editing:** Clicking on a task opens a detail view where users can:
+  * Change the task name
+  * Add or edit notes  
+  * Set a priority level (Low, Medium, High)   
+  * Define repeat settings (e.g., daily, weekly)    
+  * Delete the task if it's no longer needed   
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+👉 **Local Storage Integration:** All tasks and their details are saved in the browser's local storage, ensuring data persistence even after the browser is closed or refreshed.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+👉 **Confetti Celebration:** Moving a task to the "Done" column triggers a confetti animation to celebrate the accomplishment.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🪪 License
+This project is licensed under the MIT License
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📞 Contact
+Kolby Kiernan: kolbykiernan@gmail.com    
+Project Link: [https://todo-list-healthie.vercel.app/](https://todo-list-healthie.vercel.app/)
 
-## Learn More
+## 🌟 Credits
+* Homepage Image by [Adobe Stock](https://stock.adobe.com/search?k=to+do+list&asset_id=513597277)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
