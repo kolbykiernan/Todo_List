@@ -26,7 +26,6 @@ export default function TodoList() {
     done: 'Done',
   };
 
-  // <------ Load tasks from localStorage on mount ------> //
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem('tasks'));
     if (savedTasks) {
@@ -34,12 +33,10 @@ export default function TodoList() {
     }
   }, []);
 
-  // <------ Save tasks to localStorage on change ------> //
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // <------ Defined sensor with useSensor hook ------> //
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -48,7 +45,6 @@ export default function TodoList() {
     })
   );
 
-  // <------ Function to create a new task ------> //
   const onCreateTask = () => {
     if (taskName.trim()) {
       setTasks((existingTasks) => ({
@@ -59,12 +55,10 @@ export default function TodoList() {
     }
   };
 
-  // <------ Function to set activeId state when a task is dragged ------> //
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
-  // <------ Function to handle when a task is dropped ------> //
   const handleDragEnd = (event) => {
     const { active, over } = event;
   
@@ -73,7 +67,6 @@ export default function TodoList() {
       return;
     }
   
-    // Defines and retrieves droppableId from active and over event data and sets anything that doesn't apply to null //
     const fromColumn = active.data.current?.droppableId;
     const toColumn = over.data.current?.droppableId;
   
@@ -81,62 +74,54 @@ export default function TodoList() {
       setActiveId(null);
       return;
     }
-    
-  
+
     setTasks((existingTasks) => {
-        let updatedFromColumn = existingTasks[fromColumn].filter(
-            (task) => task !== active.id
-        );
+      let updatedFromColumn = existingTasks[fromColumn].filter(
+          (task) => task !== active.id
+      );
 
-        let updatedToColumn;
-        
-        // Check if the item is dropped within the same column //
-        if (fromColumn === toColumn) {
-            updatedToColumn = arrayMove(
-                existingTasks[toColumn],
-                existingTasks[toColumn].indexOf(active.id),
-                existingTasks[toColumn].indexOf(over.id)
-            );
-        } else {
-            // If `over.id` is not found in the toColumn, append it to the end
-            let insertionIndex = existingTasks[toColumn].indexOf(over.id);
-            if (insertionIndex === -1) {
-                insertionIndex = existingTasks[toColumn].length;
-            }
+      let updatedToColumn;
+      
+      if (fromColumn === toColumn) {
+          updatedToColumn = arrayMove(
+              existingTasks[toColumn],
+              existingTasks[toColumn].indexOf(active.id),
+              existingTasks[toColumn].indexOf(over.id)
+          );
+      } else {
+          let insertionIndex = existingTasks[toColumn].indexOf(over.id);
+          if (insertionIndex === -1) {
+              insertionIndex = existingTasks[toColumn].length;
+          }
 
-            // Insert task into the new column
-            updatedToColumn = [
-                ...existingTasks[toColumn].slice(0, insertionIndex),
-                active.id,
-                ...existingTasks[toColumn].slice(insertionIndex),
-            ];
+          updatedToColumn = [
+              ...existingTasks[toColumn].slice(0, insertionIndex),
+              active.id,
+              ...existingTasks[toColumn].slice(insertionIndex),
+          ];
 
-            // Show confetti if moved to "Done" column
-            if (toColumn === 'done') {
-                setShowConfetti(true);
-                setTimeout(() => setShowConfetti(false), 3000); 
-            }
-        }
+          if (toColumn === 'done') {
+              setShowConfetti(true);
+              setTimeout(() => setShowConfetti(false), 3000); 
+          }
+      }
 
-        return {
-            ...existingTasks,
-            [fromColumn]: updatedFromColumn,
-            [toColumn]: updatedToColumn,
-        };
+      return {
+          ...existingTasks,
+          [fromColumn]: updatedFromColumn,
+          [toColumn]: updatedToColumn,
+      };
     });
 
     setActiveId(null);
-};
+  };
 
- // <------ Function to open task details ------> //
-const openTaskDetails = (task) => {
+  const openTaskDetails = (task) => {
     setSelectedTask(task);
   };
 
-// <------ Function to save task details ------> //
-const saveTaskDetails = (updatedTask) => {
+  const saveTaskDetails = (updatedTask) => {
     if (!updatedTask) {
-        // Handle task deletion
         setTasks((existingTasks) => {
             const updatedTasks = { ...existingTasks };
             Object.keys(updatedTasks).forEach(columnId => {
@@ -145,22 +130,16 @@ const saveTaskDetails = (updatedTask) => {
             return updatedTasks;
         });
     } else {
-        // Handle task update
         setTasks((existingTasks) => {
             const updatedTasks = { ...existingTasks };
-            // Locate the column containing the task
             const columnId = updatedTask.status || selectedTask.status;
 
-            // Replace the old task with the updated task
             updatedTasks[columnId] = updatedTasks[columnId].map(task => 
                 task === selectedTask.id ? updatedTask.name : task
             );
 
-            // If the status has changed, move the task to the new column
             if (columnId !== selectedTask.status) {
-                // Remove from the original column
                 updatedTasks[selectedTask.status] = updatedTasks[selectedTask.status].filter(task => task !== selectedTask.id);
-                // Add to the new column
                 updatedTasks[columnId] = [...updatedTasks[columnId], updatedTask.name];
             }
 
@@ -168,7 +147,7 @@ const saveTaskDetails = (updatedTask) => {
         });
     }
     setSelectedTask(null);
-};
+  };
 
   return (
     <DndContext
@@ -177,53 +156,71 @@ const saveTaskDetails = (updatedTask) => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="p-4 bg-yellow-50 min-h-screen">
-        <h2 className="text-xl font-semibold mb-4">Todo List</h2>
-        <div className="mb-4">
-          <input
-            type="text"
-            value={taskName}
-            onChange={(e) => setTaskName(e.target.value)}
-            placeholder="Enter task name"
-            className="p-2 border border-gray-300 rounded"
-          />
-          <button
-            onClick={onCreateTask}
-            className="ml-2 p-2 bg-blue-500 text-white rounded"
-          >
-            Add Task
-          </button>
-        </div>
+      <div className="p-4 bg-yellow-50 min-h-screen flex justify-center items-center">
+        <div className="max-w-5xl w-full">
+          <h2 className="text-3xl font-semibold mb-8 text-center">Todo List</h2>
+          <div className="mb-6 flex justify-center">
+            <input
+              type="text"
+              value={taskName}
+              onChange={(e) => setTaskName(e.target.value)}
+              placeholder="Enter task name"
+              className="p-2 border border-gray-300 rounded w-1/2"
+            />
+            <button
+              onClick={onCreateTask}
+              className="ml-2 p-2 bg-blue-500 text-white rounded"
+            >
+              Add Task
+            </button>
+          </div>
 
-        {/* <------ Render tasks in columns using Droppable and SortableContext components -------> */}
-        <div className="flex space-x-4 h-screen mt-10">
-          {Object.entries(tasks).map(([columnId, items]) => (
-            <Droppable key={columnId} id={columnId} taskCount={items.length} label={columnLabels[columnId]}>
-              <SortableContext items={items} strategy={verticalListSortingStrategy}>
-                {items.map((task, index) => (
-                  <SortableItem key={task} id={task} index={index} droppableId={columnId}>
-                    <div onClick={() => openTaskDetails({ id: task, name: task, notes: '', status: columnId })}>
-                      {task}
-                    </div>
-                  </SortableItem>
-                ))}
-              </SortableContext>
-            </Droppable>
-          ))}
+          {/* Render tasks in columns using Droppable and SortableContext components */}
+          <div className="flex space-x-6 h-screen mt-10">
+            {Object.entries(tasks).map(([columnId, items]) => (
+              <Droppable 
+                key={columnId} 
+                id={columnId} 
+                taskCount={items.length} 
+                label={columnLabels[columnId]}
+              >
+                <SortableContext 
+                  items={items} 
+                  strategy={verticalListSortingStrategy}
+                >
+                  {items.map((task, index) => (
+                    <SortableItem 
+                      key={task} 
+                      id={task} 
+                      index={index} 
+                      droppableId={columnId}
+                      task={{ 
+                        name: task, 
+                        notes: '', 
+                        repeatFrequency: { number: 0, period: 'Never' }, 
+                        priority: 'Low'
+                      }}
+                    >
+                      <div onClick={() => openTaskDetails({ id: task, name: task, notes: '', status: columnId })}>
+                        {task}
+                      </div>
+                    </SortableItem>
+                  ))}
+                </SortableContext>
+              </Droppable>
+            ))}
+          </div>
         </div>
-        {/* Show confetti if showConfetti is true */}
         {showConfetti && <Confetti width={width} height={height} />}
-        {/* Show Task Details Overlay */}
         <AnimatePresence>
-            {selectedTask && (
-                <TaskDetails 
-                task={selectedTask} 
-                onClose={() => setSelectedTask(null)} 
-                onSave={saveTaskDetails} 
-                />
-            )}
+          {selectedTask && (
+            <TaskDetails 
+              task={selectedTask} 
+              onClose={() => setSelectedTask(null)} 
+              onSave={saveTaskDetails} 
+            />
+          )}
         </AnimatePresence>
-        {/* styling element provided by DNDKit to show user interaction when dragging */}
         <DragOverlay>
           {activeId ? <div className="p-2 bg-yellow-200 rounded">{activeId}</div> : null}
         </DragOverlay>

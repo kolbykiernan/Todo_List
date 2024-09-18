@@ -5,8 +5,7 @@ import { motion } from 'framer-motion';
 export function TaskDetails({ task, onClose, onSave }) {
   const [taskName, setTaskName] = useState(task.name);
   const [notes, setNotes] = useState(task.notes || '');
-  const [repeatFrequency, setRepeatFrequency] = useState({ number: 1, period: 'Never' });
-  const [status, setStatus] = useState(task.status || 'Todo');
+  const [repeatFrequency, setRepeatFrequency] = useState({ number: 0, period: 'Never' });
   const [priority, setPriority] = useState(task.priority || 'Low');
 
   const handleSave = () => {
@@ -15,7 +14,6 @@ export function TaskDetails({ task, onClose, onSave }) {
       name: taskName,
       notes,
       repeatFrequency,
-      status,
       priority,
     });
     onClose();
@@ -41,7 +39,7 @@ export function TaskDetails({ task, onClose, onSave }) {
             transition={{ duration: 1 }} 
             className="bg-white w-2/3 h-3/4 p-4 shadow-lg overflow-auto fixed bottom-0 right-0"
         >
-            <button className="absolute top-2 right-2 text-black" onClick={onClose}>x</button>
+            <button className="absolute top-2 right-4 text-black text-3xl" onClick={onClose}>x</button>
                 <h2 className="text-4xl font-bold mb-4 ml-2 mt-2">
                 <input 
                     type="text" 
@@ -51,47 +49,39 @@ export function TaskDetails({ task, onClose, onSave }) {
                 />
                 </h2>
             <div>
-                <label className="block font-semibold mb-2">Notes:</label>
-                <textarea 
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full h-32 p-2 border mb-4"
-                />
-            </div>
-            <div>
-                <label className="block font-semibold mb-2">Repeats:</label>
-                <div className="flex items-center mb-4">
-                    <input 
-                    type="number" 
-                    min="1" 
-                    value={repeatFrequency.number} 
-                    onChange={(e) => setRepeatFrequency({ ...repeatFrequency, number: e.target.value })} 
-                    className="border p-1 w-16 mr-2"
+                <div>
+                    <label className="block font-semibold mb-2">Notes:</label>
+                    <textarea 
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="w-full h-32 p-2 border mb-4"
                     />
-                    <select 
-                    value={repeatFrequency.period} 
-                    onChange={(e) => setRepeatFrequency({ ...repeatFrequency, period: e.target.value })}
-                    className="border p-1"
-                    >
-                    <option value="Never">Never</option>
-                    <option value="Day">Day</option>
-                    <option value="Week">Week</option>
-                    <option value="Month">Month</option>
-                    <option value="Year">Year</option>
-                    </select>
                 </div>
             </div>
             <div>
-                <label className="block font-semibold mb-2">Status:</label>
-                <select 
-                    value={status} 
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="border p-1 w-full mb-4"
-                >
-                    <option value="Todo">Todo</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                </select>
+                <div>
+                    <label className="block font-semibold mb-2">Repeats:</label>
+                    <div className="flex items-center mb-4">
+                        <input 
+                        type="number" 
+                        min="1" 
+                        value={repeatFrequency.number} 
+                        onChange={(e) => setRepeatFrequency({ ...repeatFrequency, number: e.target.value })} 
+                        className="border p-1 w-16 mr-2"
+                        />
+                        <select 
+                        value={repeatFrequency.period} 
+                        onChange={(e) => setRepeatFrequency({ ...repeatFrequency, period: e.target.value })}
+                        className="border p-1"
+                        >
+                        <option value="Never">Never</option>
+                        <option value="Day">Day</option>
+                        <option value="Week">Week</option>
+                        <option value="Month">Month</option>
+                        <option value="Year">Year</option>
+                        </select>
+                    </div>
+                </div>
             </div>
             <div>
                 <label className="block font-semibold mb-2">Priority:</label>
@@ -113,3 +103,7 @@ export function TaskDetails({ task, onClose, onSave }) {
     </div>
   );
 }
+
+// <a target="_blank" href="https://icons8.com/icon/61190/medium-priority">Medium Priority</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+// <a target="_blank" href="https://icons8.com/icon/61186/low-priority">Low Priority</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+// <a target="_blank" href="https://icons8.com/icon/59808/high-priority">High Priority</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

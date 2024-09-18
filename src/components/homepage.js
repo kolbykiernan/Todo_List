@@ -9,30 +9,23 @@ export default function Homepage() {
   };
 
   return (
-    <div className="flex justify-center h-screen bg-yellow-50">
-      <div className="m-8 justify-center">
-        <h1 className="flex justify-center text-4xl m-6">Welcome to your Todo List 📝</h1>
-        <p className="flex justify-center mt-8">
+    <div className="flex justify-center items-center min-h-screen bg-yellow-50 font-sans">
+      <div className="bg-white shadow-lg rounded-lg p-8 max-w-3xl">
+        <h1 className="text-center text-5xl font-bold mb-6 text-gray-800">
+          Welcome to your Todo List 📝
+        </h1>
+        <p className="text-center text-lg text-gray-600 mb-8">
           Stay organized and boost productivity with a simple, effective way to track your tasks and goals.
         </p>
-        <div className="flex justify-between mt-14">
-          <div>
-            <img className="rounded-lg" src="http://placekitten.com/200/300" alt="placeholder kitten"/>
-            <p className="flex justify-center">Highlight!</p>
-          </div>
-          <div>
-            <img className="rounded-lg" src="http://placekitten.com/200/300" alt="placeholder kitten"/>
-            <p className="flex justify-center">Highlight!</p>
-          </div>
-          <div>
-            <img className="rounded-lg" src="http://placekitten.com/200/300" alt="placeholder kitten"/>
-            <p className="flex justify-center">Highlight!</p>
+        <div className="flex justify-center mb-8">
+          <div className="bg-gray-100 p-4 rounded-lg shadow-md">
+            <img src={`${process.env.PUBLIC_URL}/todo-list-homepage.jpg`} alt="Todo List Homepage" className="rounded-md"/>
           </div>
         </div>
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center">
           <button
             onClick={handleNavigation}
-            className="bg-yellow-500 hover:bg-yellow-300 text-white font-bold py-2 px-4 rounded"
+            className="bg-yellow-500 hover:bg-yellow-400 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105"
           >
             Get Started
           </button>
