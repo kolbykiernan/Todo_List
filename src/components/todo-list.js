@@ -94,7 +94,7 @@ export default function TodoList() {
     })
   );
 
-  // Function to create a new task and initialize it properties
+  // Function to create a new task and initialize its properties
   const onCreateTask = () => {
     if (taskName.trim()) {
       const newTask = {
@@ -133,16 +133,15 @@ export default function TodoList() {
       setActiveId(null);
       return;
     }
-
-    // Update the tasks state to reflect the drag and drop
+  
     setTasks((existingTasks) => {
       // Remove the task from the origin column
       let updatedFromColumn = existingTasks[fromColumn].filter(
         (task) => task.id !== active.id
       );
-
+  
       let updatedToColumn;
-      
+  
       if (fromColumn === toColumn) {
         // Reorder tasks within the same column
         updatedToColumn = arrayMove(
@@ -153,32 +152,38 @@ export default function TodoList() {
       } else {
         // Move task to a different column
         let insertionIndex = existingTasks[toColumn].findIndex(task => task.id === over.id);
+  
+        // If the task is dropped within a column without proximity to another task, add it to the end
         if (insertionIndex === -1) {
-          insertionIndex = existingTasks[toColumn].length;
+          updatedToColumn = [
+            ...existingTasks[toColumn],
+            existingTasks[fromColumn].find(task => task.id === active.id),
+          ];
+        } else {
+          updatedToColumn = [
+            ...existingTasks[toColumn].slice(0, insertionIndex),
+            existingTasks[fromColumn].find(task => task.id === active.id),
+            ...existingTasks[toColumn].slice(insertionIndex),
+          ];
         }
-
-        updatedToColumn = [
-          ...existingTasks[toColumn].slice(0, insertionIndex),
-          existingTasks[fromColumn].find(task => task.id === active.id),
-          ...existingTasks[toColumn].slice(insertionIndex),
-        ];
-
+  
         // Show confetti if task is moved to "done"
         if (toColumn === 'done') {
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 3000); 
         }
       }
-
+  
       return {
         ...existingTasks,
         [fromColumn]: updatedFromColumn,
         [toColumn]: updatedToColumn,
       };
     });
-
+  
     setActiveId(null);
   };
+  
 
   // Open the task details overlay for editing
   const openTaskDetails = (task, columnId) => {
@@ -234,33 +239,33 @@ export default function TodoList() {
 
           {/* Render tasks in columns using Droppable and SortableContext components */}
           <div className="flex space-x-6 h-screen mt-10">
-          {Object.entries(tasks).map(([columnId, items]) => (
-            <Droppable 
-              key={columnId} 
-              id={columnId} 
-              taskCount={items ? items.length : 0} 
-              label={columnLabels[columnId]}
-            >
-              <SortableContext 
-                items={items ? items.map(task => task.id) : []} 
-                strategy={verticalListSortingStrategy}
+            {Object.entries(tasks).map(([columnId, items]) => (
+              <Droppable 
+                key={columnId} 
+                id={columnId} 
+                taskCount={items ? items.length : 0} 
+                label={columnLabels[columnId]}
               >
-                {items && items.map((task, index) => (
-                  <SortableItem 
-                    key={task.id} 
-                    id={task.id} 
-                    index={index} 
-                    droppableId={columnId}
-                    task={task}
-                  >
-                    <div onClick={() => openTaskDetails(task, columnId)}> 
-                      {task.name}
-                    </div>
-                  </SortableItem>
-                ))}
-              </SortableContext>
-            </Droppable>
-          ))}
+                <SortableContext 
+                  items={items ? items.map(task => task.id) : []} 
+                  strategy={verticalListSortingStrategy}
+                >
+                  {items && items.map((task, index) => (
+                    <SortableItem 
+                      key={task.id} 
+                      id={task.id} 
+                      index={index} 
+                      droppableId={columnId}
+                      task={task}
+                    >
+                      <div onClick={() => openTaskDetails(task, columnId)}> 
+                        {task.name}
+                      </div>
+                    </SortableItem>
+                  ))}
+                </SortableContext>
+              </Droppable>
+            ))}
           </div>
         </div>
         {showConfetti && <Confetti width={width} height={height} />}
@@ -292,3 +297,4 @@ export default function TodoList() {
     </DndContext>
   );
 }
+
