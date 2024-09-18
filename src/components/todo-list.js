@@ -84,71 +84,77 @@ export default function TodoList() {
   };
 
   // Function to handle when a task is dropped
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
+ const handleDragEnd = (event) => {
+  const { active, over } = event;
 
     if (!over) {
-      setActiveId(null);
-      return;
+        setActiveId(null);
+        return;
     }
 
     const fromColumn = active.data.current?.droppableId;
-    const toColumn = over.id;
+    const toColumn = over.data.current?.droppableId || over.id;
 
-    if (!fromColumn || !toColumn) {
-      setActiveId(null);
-      return;
+    // Update the tasks state
+    setTasks((existingTasks) => {
+        // Ensure both fromColumn and toColumn are defined and are arrays
+        if (!fromColumn || !toColumn || !Array.isArray(existingTasks[fromColumn]) || !Array.isArray(existingTasks[toColumn])) {
+            setActiveId(null);
+            return existingTasks; // Return current state if validation fails
+        }
+
+        let updatedFromColumn = existingTasks[fromColumn].filter(
+            (task) => task.id !== active.id
+        );
+
+        let updatedToColumn;
+
+        if (fromColumn === toColumn) {
+            // Reorder tasks within the same column
+            updatedToColumn = arrayMove(
+                existingTasks[toColumn],
+                existingTasks[toColumn].findIndex(task => task.id === active.id),
+                existingTasks[toColumn].findIndex(task => task.id === over.id)
+            );
+        } else {
+            // Move task to a different column
+            const draggedTask = existingTasks[fromColumn].find(task => task.id === active.id);
+            let insertionIndex = existingTasks[toColumn].findIndex(task => task.id === over.id);
+
+            // If the task is dropped within a column without proximity to another task, add it to the end
+            if (insertionIndex === -1) {
+                updatedToColumn = [
+                    ...existingTasks[toColumn],
+                    draggedTask,
+                ];
+            } else {
+                updatedToColumn = [
+                    ...existingTasks[toColumn].slice(0, insertionIndex),
+                    draggedTask,
+                    ...existingTasks[toColumn].slice(insertionIndex),
+                ];
+            }
+        }
+
+    // Show confetti if moved to "Done" column
+    if (toColumn === 'done') {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
     }
 
-    setTasks((existingTasks) => {
-      let updatedFromColumn = existingTasks[fromColumn].filter(
-        (task) => task.id !== active.id
-      );
+    return {
+      ...existingTasks,
+      [fromColumn]: updatedFromColumn,
+      [toColumn]: updatedToColumn,
+    };
+  });
 
-      let updatedToColumn;
+  setActiveId(null);
+};
 
-      if (fromColumn === toColumn) {
-        // Reorder tasks within the same column
-        updatedToColumn = arrayMove(
-          existingTasks[toColumn],
-          existingTasks[toColumn].findIndex(task => task.id === active.id),
-          existingTasks[toColumn].findIndex(task => task.id === over.id)
-        );
-      } else {
-        // Move task to a different column
-        const draggedTask = existingTasks[fromColumn].find(task => task.id === active.id);
-        let insertionIndex = existingTasks[toColumn].findIndex(task => task.id === over.id);
-
-        // If the task is dropped within a column without proximity to another task, add it to the end
-        if (insertionIndex === -1) {
-          updatedToColumn = [
-            ...existingTasks[toColumn],
-            draggedTask,
-          ];
-        } else {
-          updatedToColumn = [
-            ...existingTasks[toColumn].slice(0, insertionIndex),
-            draggedTask,
-            ...existingTasks[toColumn].slice(insertionIndex),
-          ];
-        }
-
-        // Show confetti if moved to "Done" column
-        if (toColumn === 'done') {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 3000);
-        }
-      }
-
-      return {
-        ...existingTasks,
-        [fromColumn]: updatedFromColumn,
-        [toColumn]: updatedToColumn,
-      };
-    });
-
-    setActiveId(null);
-  };
+  
+  
+  
 
   // Function to open task details
   const openTaskDetails = (task, columnId) => {
