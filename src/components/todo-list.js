@@ -97,16 +97,18 @@ export default function TodoList() {
 
     // Update the tasks state
     setTasks((existingTasks) => {
-        // Ensure both fromColumn and toColumn are defined and are arrays
+        // Ensure both fromColumn and toColumn are defined and that existingTask are arrays
         if (!fromColumn || !toColumn || !Array.isArray(existingTasks[fromColumn]) || !Array.isArray(existingTasks[toColumn])) {
             setActiveId(null);
             return existingTasks; // Return current state if validation fails
         }
 
+        //removes active task from fromColumn
         let updatedFromColumn = existingTasks[fromColumn].filter(
             (task) => task.id !== active.id
         );
 
+        //defining updatedToColumn which determines how task should be moved into column
         let updatedToColumn;
 
         if (fromColumn === toColumn) {
@@ -152,10 +154,6 @@ export default function TodoList() {
   setActiveId(null);
 };
 
-  
-  
-  
-
   // Function to open task details
   const openTaskDetails = (task, columnId) => {
     setSelectedTask({ ...task, columnId });
@@ -163,6 +161,23 @@ export default function TodoList() {
 
   // Function to save task details
   const saveTaskDetails = (updatedTask) => {
+    if (!updatedTask) {
+      // Delete the selected task
+      setTasks((existingTasks) => {
+        const columnId = selectedTask.columnId; // Use selectedTask to get the columnId of the task to be deleted
+        const updatedTasks = { ...existingTasks };
+        
+        // Remove the task from the relevant column
+        updatedTasks[columnId] = updatedTasks[columnId].filter(task => task.id !== selectedTask.id);
+  
+        console.log('Task deleted, new tasks state:', updatedTasks);
+        return updatedTasks;
+      });
+  
+      setSelectedTask(null);
+      return; // Exit the function early since the task is deleted
+    }
+    
     setTasks((existingTasks) => {
       const updatedTasks = { ...existingTasks };
       const columnId = updatedTask.columnId;
@@ -230,7 +245,7 @@ export default function TodoList() {
                       task={task}
                     >
                       <div onClick={() => openTaskDetails(task, columnId)}>
-                        {task.name}
+                        <div>{task.name}</div>
                       </div>
                     </SortableItem>
                   ))}
