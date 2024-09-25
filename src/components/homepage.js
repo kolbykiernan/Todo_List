@@ -11,7 +11,7 @@ export default function Homepage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-yellow-50 font-sans">
       <div className="bg-white shadow-lg rounded-lg p-8 max-w-3xl">
-        <h1 className="text-center text-5xl font-bold mb-6 text-gray-800">
+        <h1 className="text-center text-3xl font-bold mb-6 text-gray-800">
           Welcome to your Todo List 📝
         </h1>
         <p className="text-center text-lg text-gray-600 mb-8">
