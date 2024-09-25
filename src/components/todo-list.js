@@ -236,7 +236,7 @@ export default function TodoList() {
           </div>
 
           {/* Render tasks in columns using Droppable and SortableContext components */}
-          <div className="flex space-x-6 h-screen mt-10">
+          <div className="flex space-x-6 h-screen mt-10 overflow-x-auto">
             {Object.entries(tasks).map(([columnId, items]) => (
               <Droppable
                 key={columnId}
