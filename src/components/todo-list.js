@@ -7,6 +7,7 @@ import { TaskDetails } from './task-details';
 import Confetti from 'react-confetti';
 import useWindowSize from 'react-use/lib/useWindowSize';
 import { AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export default function TodoList() {
   const { width, height } = useWindowSize();
@@ -197,6 +198,12 @@ export default function TodoList() {
     setSelectedTask(null);
   };
 
+  const navigate = useNavigate();
+
+  const handleNavigation = () => {
+    navigate('/');
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -206,7 +213,12 @@ export default function TodoList() {
     >
       <div className="p-4 bg-yellow-50 min-h-screen flex justify-center items-center">
         <div className="max-w-5xl w-full">
-          <h2 className="text-3xl font-semibold mb-8 text-center">Todo List</h2>
+          <h2 
+            className="text-3xl font-semibold mb-8 text-center cursor-pointer"
+            onClick={handleNavigation}
+          >
+            Todo List
+          </h2>
           <div className="mb-6 flex justify-center">
             <input
               type="text"
